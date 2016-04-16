@@ -5,13 +5,13 @@
 
   <groupId>org.artofsolving.jodconverter</groupId>
   <artifactId>jodconverter-core</artifactId>
-  <version>3.0-NX11-SNAPSHOT</version>
+  <version>3.0-VR1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>JODConverter - Core Library</name>
   <description>
     JODConverter converts office documents using OpenOffice.org.
-    Nuxeo maintenance branch forked from tag 3.0-beta-3.
+    VisionR maintenance branch cloned from Nuxeo maintenance branch forked from tag 3.0-beta-3.
   </description>
   <url>http://jodconverter.googlecode.com</url>
   <licenses>
@@ -84,8 +84,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
@@ -181,21 +181,5 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
-
-  <distributionManagement>
-    <repository>
-      <id>vendor-releases</id>
-      <url>
-        https://maven.nuxeo.org/nexus/content/repositories/vendor-releases/
-      </url>
-    </repository>
-    <snapshotRepository>
-      <id>vendor-snapshots</id>
-      <url>
-        https://maven.nuxeo.org/nexus/content/repositories/vendor-snapshots/
-      </url>
-      <uniqueVersion>true</uniqueVersion>
-    </snapshotRepository>
-  </distributionManagement>
 
 </project>

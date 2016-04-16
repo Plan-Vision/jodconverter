@@ -6,8 +6,7 @@ JODConverter (for Java OpenDocument Converter) automates document conversions us
 Forked from https://github.com/nuxeo/jodconverter stating:
 
 VisionR Notes
------------------------------------
+
  - Fixed pdf calc export with very long row count (define print area)
  - Delayed process creation and recreation
------------------------------------
  
