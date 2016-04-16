@@ -55,9 +55,8 @@ public class StandardConversionTask extends AbstractConversionTask {
 
     protected final Map<String, Serializable> params;
 
-    public StandardConversionTask(File inputFile, File outputFile,
-            DocumentFormat outputFormat, Map<String, Serializable> params) {
-        super(inputFile, outputFile);
+    public StandardConversionTask(File inputFile, File outputFile, DocumentFormat outputFormat, Map<String, Serializable> params) {    	
+        super(inputFile, outputFile,outputFormat.getExtension().equalsIgnoreCase("pdf"));
         this.outputFormat = outputFormat;
         if (params == null) {
             params = new HashMap<String, Serializable>();

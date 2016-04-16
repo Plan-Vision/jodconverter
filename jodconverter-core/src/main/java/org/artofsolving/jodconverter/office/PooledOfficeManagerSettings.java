@@ -23,7 +23,7 @@ class PooledOfficeManagerSettings extends ManagedOfficeProcessSettings {
 
     public static final long DEFAULT_TASK_EXECUTION_TIMEOUT = 120000L;
 
-    public static final int DEFAULT_MAX_TASKS_PER_PROCESS = 200;
+    public static final int DEFAULT_MAX_TASKS_PER_PROCESS = 500;
 
     private long taskExecutionTimeout = DEFAULT_TASK_EXECUTION_TIMEOUT;
 

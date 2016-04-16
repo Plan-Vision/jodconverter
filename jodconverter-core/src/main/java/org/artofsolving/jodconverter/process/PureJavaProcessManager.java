@@ -28,7 +28,8 @@ public class PureJavaProcessManager implements ProcessManager {
     }
 
     public void kill(Process process, String pid) {
-        process.destroy();
+        if (process != null)
+        	process.destroy();
     }
 
     public boolean canFindPid() {

@@ -115,6 +115,8 @@ class OfficeConnection implements OfficeContext {
 
     public Object getService(String serviceName) {
         try {
+        	if (!connected)
+        		connect();
             return serviceManager.createInstanceWithContext(serviceName, componentContext);
         } catch (Exception exception) {
             throw new OfficeException(String.format("failed to obtain service '%s'", serviceName), exception);

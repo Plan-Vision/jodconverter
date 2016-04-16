@@ -207,7 +207,7 @@ public class DefaultOfficeManagerConfiguration {
 
     private boolean isValidProfileDir(File profileDir) {
         File setupXcu = new File(profileDir,
-                "user/registry/data/org/openoffice/Setup.xcu");
+                "user/registrymodifications.xcu");
         return setupXcu.exists();
     }
 

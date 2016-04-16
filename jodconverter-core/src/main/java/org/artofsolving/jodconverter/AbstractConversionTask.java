@@ -31,12 +31,22 @@ import org.artofsolving.jodconverter.office.OfficeContext;
 import org.artofsolving.jodconverter.office.OfficeException;
 import org.artofsolving.jodconverter.office.OfficeTask;
 
+import com.sun.star.container.NoSuchElementException;
 import com.sun.star.frame.XComponentLoader;
 import com.sun.star.frame.XStorable;
 import com.sun.star.io.IOException;
 import com.sun.star.lang.IllegalArgumentException;
+import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.lang.XComponent;
+import com.sun.star.sheet.XCellRangeAddressable;
+import com.sun.star.sheet.XPrintAreas;
+import com.sun.star.sheet.XSheetCellCursor;
+import com.sun.star.sheet.XSpreadsheet;
+import com.sun.star.sheet.XSpreadsheetDocument;
+import com.sun.star.sheet.XUsedAreaCursor;
+import com.sun.star.table.CellRangeAddress;
 import com.sun.star.task.ErrorCodeIOException;
+import com.sun.star.uno.UnoRuntime;
 import com.sun.star.util.CloseVetoException;
 import com.sun.star.util.XCloseable;
 import com.sun.star.util.XRefreshable;
@@ -51,12 +61,15 @@ import com.sun.star.util.XRefreshable;
 public abstract class AbstractConversionTask implements OfficeTask {
 
     private final File inputFile;
-
     private final File outputFile;
+    private final boolean isFix;
 
-    public AbstractConversionTask(File inputFile, File outputFile) {
+    // isFix = true then if spread sheet set print area
+    
+    public AbstractConversionTask(File inputFile, File outputFile,boolean isFix) {
         this.inputFile = inputFile;
         this.outputFile = outputFile;
+        this.isFix=isFix;
     }
 
     protected abstract Map<String, ?> getLoadProperties(File inputFile);
@@ -119,7 +132,48 @@ public abstract class AbstractConversionTask implements OfficeTask {
         }
 
         handleDocumentLoaded(document);
-
+        //-----------------------------------------------------------------------
+        // FIX CONVERTION CRASH ON BIG EXCEL DATA WITHOUT PRINT AREA OR WITH BIG PRINT AREA!
+        //-----------------------------------------------------------------------
+        XSpreadsheetDocument sx = cast(XSpreadsheetDocument.class, document);
+        if (sx!= null && isFix) 
+        {
+            String n1 = sx.getSheets().getElementNames()[0];
+            XSpreadsheet s=null;
+    		try 
+    		{
+    			s = cast(XSpreadsheet.class, sx.getSheets().getByName(n1));
+    	        XSheetCellCursor cursor = s.createCursor();
+    	        XUsedAreaCursor cursor2 = (XUsedAreaCursor) UnoRuntime.queryInterface(XUsedAreaCursor.class, cursor);
+    	        cursor2.gotoStartOfUsedArea(false);
+    	        cursor2.gotoEndOfUsedArea(true);
+    	        XCellRangeAddressable lAddressable = (XCellRangeAddressable) UnoRuntime.queryInterface(XCellRangeAddressable.class, cursor2);
+    	        if (lAddressable.getRangeAddress().EndRow > 3000) 
+    	        {
+        	        XPrintAreas printAreas = (XPrintAreas)UnoRuntime.queryInterface(XPrintAreas.class, s);
+        	        CellRangeAddress[] crr = printAreas.getPrintAreas();
+        	        if (crr == null || crr.length == 0) 
+        	        {
+        	        	CellRangeAddress e = lAddressable.getRangeAddress(); 
+        	        	e.EndRow=3000;        	        
+            	        printAreas.setPrintAreas(new CellRangeAddress[] {e});
+        	        } else {
+        	        	boolean ok=false;
+        	        	for (CellRangeAddress e : crr) 
+        	        	{
+        	        		if (e.EndRow > 3000) {
+        	        			e.EndRow = 3000;
+        	        			ok=true;
+        	        		}
+        	        	}
+        	        	if (ok)
+        	        		printAreas.setPrintAreas(crr);
+        	        }
+    	        }
+    	        //-----------------------------------------------------------------------
+    		} catch (NoSuchElementException | WrappedTargetException e) {}
+        }
+        //-----------------------------------------------------------------------
         return document;
     }
 

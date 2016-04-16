@@ -22,6 +22,7 @@ package org.artofsolving.jodconverter.office;
 import java.io.File;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -29,7 +30,7 @@ import org.artofsolving.jodconverter.process.ProcessManager;
 
 class ProcessPoolOfficeManager implements OfficeManager {
 
-    private final BlockingQueue<PooledOfficeManager> pool;
+    private final BlockingLifoQueue<PooledOfficeManager> pool;
 
     private final PooledOfficeManager[] pooledManagers;
 
@@ -52,7 +53,7 @@ class ProcessPoolOfficeManager implements OfficeManager {
             long taskExecutionTimeout, int maxTasksPerProcess,
             ProcessManager processManager, boolean useGnuStyleLongOptions) {
         this.taskQueueTimeout = taskQueueTimeout;
-        pool = new ArrayBlockingQueue<PooledOfficeManager>(unoUrls.length);
+        pool = new BlockingLifoQueue<PooledOfficeManager>(); //unoUrls.length);
         pooledManagers = new PooledOfficeManager[unoUrls.length];
         for (int i = 0; i < unoUrls.length; i++) {
             PooledOfficeManagerSettings settings = new PooledOfficeManagerSettings(
@@ -71,7 +72,7 @@ class ProcessPoolOfficeManager implements OfficeManager {
 
     public synchronized void start() throws OfficeException {
         for (int i = 0; i < pooledManagers.length; i++) {
-            pooledManagers[i].start();
+            //pooledManagers[i].start();
             releaseManager(pooledManagers[i]);
         }
         running = true;
@@ -117,10 +118,8 @@ class ProcessPoolOfficeManager implements OfficeManager {
 
     private void releaseManager(PooledOfficeManager manager) {
         try {
-            pool.put(manager);
-        } catch (InterruptedException interruptedException) {
-            throw new OfficeException("interrupted", interruptedException);
-        }
+			pool.put(manager);
+		} catch (InterruptedException e) {}
     }
 
     @Override

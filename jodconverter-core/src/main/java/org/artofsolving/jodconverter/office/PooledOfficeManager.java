@@ -34,7 +34,8 @@ class PooledOfficeManager implements OfficeManager {
     private final SuspendableThreadPoolExecutor taskExecutor;
 
     private volatile boolean stopping = false;
-
+    private volatile boolean started = false;
+    
     private int taskCount;
 
     private Future<?> currentTask;
@@ -75,18 +76,24 @@ class PooledOfficeManager implements OfficeManager {
                 new NamedThreadFactory("OfficeTaskThread"));
     }
 
-    public void execute(final OfficeTask task) throws OfficeException {
+    public void execute(final OfficeTask task) throws OfficeException 
+    {
+    	// VISIONR FIX -> add random offset to offset the slow restart 
+    	final int randomOffset = (int)Math.round(Math.random()*settings.getMaxTasksPerProcess());
+    	start();	// VISIONR FIX delayed start
+    	
         Future<?> futureTask = taskExecutor.submit(new Runnable() {
-            public void run() {
+            public void run() 
+            {
                 if (settings.getMaxTasksPerProcess() > 0
-                        && ++taskCount == settings.getMaxTasksPerProcess() + 1) {
+                        && ++taskCount >= settings.getMaxTasksPerProcess() + randomOffset + 1) {
+                	taskCount=1;
                     logger.info(String.format(
                             "reached limit of %d maxTasksPerProcess: restarting",
                             settings.getMaxTasksPerProcess()));
                     taskExecutor.setAvailable(false);
                     stopping = true;
                     managedOfficeProcess.restartAndWait();
-                    // FIXME taskCount will be 0 rather than 1 at this point
                 }
                 task.execute(managedOfficeProcess.getConnection());
             }
@@ -112,14 +119,21 @@ class PooledOfficeManager implements OfficeManager {
     }
 
     public void start() throws OfficeException {
-        managedOfficeProcess.startAndWait();
+    	if (!started) {
+    		managedOfficeProcess.startAndWait();
+    		started=true;
+    	}
     }
 
     public void stop() throws OfficeException {
-        taskExecutor.setAvailable(false);
-        stopping = true;
-        taskExecutor.shutdownNow();
-        managedOfficeProcess.stopAndWait();
+    	if (!stopping) 
+    	{
+            taskExecutor.setAvailable(false);
+            stopping = true;
+            taskExecutor.shutdownNow();
+            managedOfficeProcess.stopAndWait();
+            started=false;
+    	}
     }
 
     @Override

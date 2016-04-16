@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -177,7 +178,12 @@ class OfficeProcess {
     protected void doStart(boolean retry) throws IOException {
         String processRegex = "soffice.*"
                 + Pattern.quote(unoUrl.getAcceptString());
+        
         String existingPid = processManager.findPid(processRegex);
+        if (existingPid != null) {
+        	processManager.kill(null, existingPid);	
+        	existingPid = processManager.findPid(processRegex);
+        }
         if (existingPid != null) {
             throw new IllegalStateException(
                     String.format(
@@ -217,42 +223,30 @@ class OfficeProcess {
         logger.info(String.format(
                 "starting process with acceptString '%s' and profileDir '%s'",
                 unoUrl, instanceProfileDir));
+        
         process = processBuilder.start();
-
+        try {
+			process.waitFor(getStartupWatchTime(),TimeUnit.SECONDS);
+		} catch (InterruptedException e1) {}
         int exitValue = 0;
         boolean exited = false;
-        for (int i = 0; i < getStartupWatchTime() * 2; i++) {
-            try {
-                // wait for process to start
-                Thread.sleep(500);
-            } catch (Exception e) {
-            }
-            try {
-                exitValue = process.exitValue();
-                // process is already dead, no need to wait longer ...
-                exited = true;
-                break;
-            } catch (IllegalThreadStateException e) {
-                // process is still up
-            }
+        try 
+        {
+            exitValue = process.exitValue();
+            exited = true;
+        } catch (IllegalThreadStateException e) {
+            // process is still up
         }
 
         if (exited) {
             if (exitValue == 81) {
                 logger.warning("Restarting OOo after code 81 ...");
                 process = processBuilder.start();
-                try {
-                    // wait for process to start
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-                }
             } else {
                 logger.warning("Process exited with code " + exitValue);
             }
         }
-
         manageProcessOutputs(process);
-
         if (processManager.canFindPid()) {
             pid = processManager.findPid(processRegex);
             if (pid == null) {
