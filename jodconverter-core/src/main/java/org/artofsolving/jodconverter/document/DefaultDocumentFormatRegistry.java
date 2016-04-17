@@ -111,6 +111,7 @@ public class DefaultDocumentFormatRegistry extends SimpleDocumentFormatRegistry 
 
 		DocumentFormat xlsx = new DocumentFormat("Microsoft Excel 2007 XML", "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 		xlsx.setInputFamily(DocumentFamily.SPREADSHEET);
+		xlsx.setStoreProperties(DocumentFamily.SPREADSHEET, Collections.singletonMap("FilterName", "Calc MS Excel 2007 XML"));
         addFormat(xlsx);
 
         DocumentFormat csv = new DocumentFormat("Comma Separated Values", "csv", "text/csv");

@@ -10,4 +10,4 @@ VisionR Notes
  - Fixed pdf calc export with very long row count (define print area)
  - Delayed process creation and recreation
  - FIFO process queue replaced with LIFO queue because of the slow full initialization (reuse an old instance before trying to create a new one)
- 
+ - Addex XLSX as output format (filter name 'Calc MS Excel 2007 XML') (testet with libreoffice 5 only)
