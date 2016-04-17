@@ -161,8 +161,8 @@ public abstract class AbstractConversionTask implements OfficeTask {
         	        	boolean ok=false;
         	        	for (CellRangeAddress e : crr) 
         	        	{
-        	        		if (e.EndRow > 3000) {
-        	        			e.EndRow = 3000;
+        	        		if (e.EndRow - e.StartRow > 3000) {
+        	        			e.EndRow = e.StartRow + 3000;
         	        			ok=true;
         	        		}
         	        	}
